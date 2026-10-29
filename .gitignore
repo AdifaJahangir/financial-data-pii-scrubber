@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.coverage.*
+
+# Build / dist
+build/
+dist/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Local uploads and processed data
+uploads/
+processed/
+data/uploads/
+data/processed/
+tmp/
+temp/
+*.tmp
+
+# Sensitive outputs
+*.log
+*.bak
+*.orig
+raw_*
+
+# Local financial documents and generated outputs
+*.pdf
+*.docx
+*.csv
+*.xlsx
+*.xls
+*.txt
+
+# Keep project documentation and dependency files
+!README.txt
+!requirements.txt
+!prompts.txt
