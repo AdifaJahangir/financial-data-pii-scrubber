@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,37 +7,134 @@
   <title>Financial Data PII Scrubber</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
   <main class="container">
+
     <header>
       <h1>Financial Data PII Scrubber</h1>
-      <p>Upload financial documents for local PII detection and redaction.</p>
-      <span class="privacy">Local processing · Safety validation · PostgreSQL storage</span>
+      <p>Securely scrub financial documents and analyze your financial data.</p>
+      <span class="privacy">
+        Local PII processing · Safety validation · PostgreSQL storage ·
+        Groq AI analysis
+      </span>
     </header>
 
+    <!-- Upload Section -->
     <section class="panel">
       <h2>Upload documents</h2>
-      <p class="muted">Supported formats: PDF, DOCX, CSV and TXT. Maximum 20 files; 10 MB per file and 50 MB per request.</p>
+
+      <p class="muted">
+        Supported formats: PDF, DOCX, CSV and TXT.
+        Maximum 20 files; 10 MB per file and 50 MB per request.
+      </p>
+
       <label for="files">Choose financial documents</label>
-      <input id="files" type="file" multiple accept=".pdf,.docx,.csv,.txt">
+      <input
+        id="files"
+        type="file"
+        multiple
+        accept=".pdf,.docx,.csv,.txt"
+      >
+
       <p id="selection" class="muted">No files selected.</p>
-      <button id="processButton">Upload and scrub locally</button>
+
+      <button id="processButton">
+        Upload and scrub locally
+      </button>
+
       <p id="status" role="status"></p>
     </section>
 
+    <!-- Processing Results -->
     <section id="results" class="panel hidden">
       <h2>Processing results</h2>
+
       <div id="summary"></div>
+
       <h3>Files processed</h3>
       <div id="fileResults"></div>
+
       <h3>Combined scrubbed output</h3>
-      <p class="muted">Review this output before using it in any external service.</p>
-      <textarea id="output" readonly rows="16"></textarea>
-      <button id="copyButton" class="secondary">Copy scrubbed output</button>
+
+      <p class="muted">
+        Review this output before using it in any external service.
+      </p>
+
+      <textarea
+        id="output"
+        readonly
+        rows="16"
+      ></textarea>
+
+      <button id="copyButton" class="secondary">
+        Copy scrubbed output
+      </button>
     </section>
 
-    <footer>Financial Data PII Scrubber · Local document processing</footer>
+    <!-- Groq Analysis Section -->
+    <section id="analysisSection" class="panel hidden">
+      <h2>AI Financial Analysis</h2>
+
+      <p class="muted">
+        Analyze your validated, scrubbed financial documents
+        using Groq AI. Original documents are not sent to Groq.
+      </p>
+
+      <button id="analyzeButton">
+        Analyze Financial Data
+      </button>
+
+      <p id="analysisStatus" role="status"></p>
+
+      <div id="analysisResult" class="hidden">
+        <h3>Analysis Report</h3>
+        <div id="analysisContent"></div>
+        <p id="analysisModel" class="muted"></p>
+      </div>
+    </section>
+
+    <!-- Financial Chat Section -->
+    <section id="chatSection" class="panel hidden">
+      <h2>Ask Questions About Your Finances</h2>
+
+      <p class="muted">
+        Ask questions about your uploaded and scrubbed financial
+        documents. Answers are based on the available document data.
+      </p>
+
+      <label for="chatQuestion">
+        Enter your question
+      </label>
+
+      <textarea
+        id="chatQuestion"
+        rows="3"
+        maxlength="1000"
+        placeholder="Example: What was my largest transaction?"
+      ></textarea>
+
+      <button id="chatButton">
+        Ask Groq AI
+      </button>
+
+      <p id="chatStatus" role="status"></p>
+
+      <div id="chatResult" class="hidden">
+        <h3>AI Response</h3>
+        <div id="chatAnswer"></div>
+        <p id="chatModel" class="muted"></p>
+      </div>
+    </section>
+
+    <footer>
+      Financial Data PII Scrubber ·
+      Local document processing ·
+      Groq AI analysis
+    </footer>
+
   </main>
+
   <script src="/app.js"></script>
 </body>
 </html>
