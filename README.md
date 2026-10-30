@@ -1,4 +1,4 @@
-# Financial Data PII Scrubber
+﻿# Financial Data PII Scrubber
 
 A privacy-focused Python application that processes local financial documents, detects and redacts personally identifiable information (PII), validates sanitized output, and stores processing metadata in PostgreSQL.
 
@@ -26,7 +26,7 @@ Budgeting analysis and follow-up chat using an external language model are plann
 
 ### Prerequisites
 
-- Python 3.12 or a compatible version supported by the dependencies
+- Python 3.11 supported by the dependencies
 - PostgreSQL
 - Git
 
@@ -40,7 +40,7 @@ cd financial-data-pii-scrubber
 ### 2. Create and activate a virtual environment
 
 ```powershell
-py -3.12 -m venv .venv
+py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
@@ -73,7 +73,7 @@ http://127.0.0.1:8000/docs
 Check the health endpoint:
 
 ```powershell
-Invoke-WebRequest http://127.0.0.1:8000/api/health
+Invoke-WebRequest http://127.0.0.1:8000/api/v1/health
 ```
 
 ### 6. Run the tests
@@ -90,7 +90,7 @@ The frontend files are located in `frontend/`:
 - `styles.css`
 - `app.js`
 
-Open `frontend/index.html` in a browser for a static preview. API-connected features may require the FastAPI server to be running and the frontend API configuration to be correct.
+Start FastAPI and open http://127.0.0.1:8000 in your browser. The frontend is served by the FastAPI application.
 
 ## Security Considerations
 

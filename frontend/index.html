@@ -1,16 +1,42 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Financial Data PII Scrubber</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <main>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Data PII Scrubber</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="container">
+    <header>
       <h1>Financial Data PII Scrubber</h1>
-      <p>Phase 1 scaffold only. Frontend functionality is not implemented yet.</p>
-    </main>
-    <script src="app.js"></script>
-  </body>
+      <p>Upload financial documents for local PII detection and redaction.</p>
+      <span class="privacy">Local processing · Safety validation · PostgreSQL storage</span>
+    </header>
+
+    <section class="panel">
+      <h2>Upload documents</h2>
+      <p class="muted">Supported formats: PDF, DOCX, CSV and TXT. Maximum 20 files; 10 MB per file and 50 MB per request.</p>
+      <label for="files">Choose financial documents</label>
+      <input id="files" type="file" multiple accept=".pdf,.docx,.csv,.txt">
+      <p id="selection" class="muted">No files selected.</p>
+      <button id="processButton">Upload and scrub locally</button>
+      <p id="status" role="status"></p>
+    </section>
+
+    <section id="results" class="panel hidden">
+      <h2>Processing results</h2>
+      <div id="summary"></div>
+      <h3>Files processed</h3>
+      <div id="fileResults"></div>
+      <h3>Combined scrubbed output</h3>
+      <p class="muted">Review this output before using it in any external service.</p>
+      <textarea id="output" readonly rows="16"></textarea>
+      <button id="copyButton" class="secondary">Copy scrubbed output</button>
+    </section>
+
+    <footer>Financial Data PII Scrubber · Local document processing</footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
 </html>

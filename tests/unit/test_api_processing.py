@@ -222,3 +222,184 @@ def test_process_local_rejects_symlink_escape(monkeypatch, tmp_path) -> None:
     assert payload["safe_to_send"] is False
     assert payload["job_id"] is None
     persisted.assert_not_called()
+
+def test_upload_success_with_synthetic_txt(monkeypatch):
+    app.dependency_overrides[get_db] = _override_db
+
+    def fake_persist(self, trusted_batch, db):
+        return SimpleNamespace(id=123)
+
+    monkeypatch.setattr(
+        processing_routes.DocumentProcessingService,
+        "persist_batch_result",
+        fake_persist,
+    )
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            (
+                "files",
+                (
+                    "synthetic_statement.txt",
+                    b"Account Number: 123456789012\nMerchant: Example Store\nAmount: PKR 2500",
+                    "text/plain",
+                ),
+            )
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["status"] == "success"
+    assert result["safe_to_send"] is True
+    assert result["job_id"] == 123
+    assert result["processed_count"] == 1
+    assert "123456789012" not in result["combined_output"]
+
+def test_upload_processes_multiple_synthetic_files(monkeypatch):
+    app.dependency_overrides[get_db] = _override_db
+
+    def fake_persist(self, trusted_batch, db):
+        return SimpleNamespace(id=456)
+
+    monkeypatch.setattr(
+        processing_routes.DocumentProcessingService,
+        "persist_batch_result",
+        fake_persist,
+    )
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("first.txt", b"Merchant: Alpha Store\nAmount: PKR 500", "text/plain")),
+            ("files", ("second.csv", b"DATE,DESCRIPTION,AMOUNT\n2026-01-01,Beta Store,1200", "text/csv")),
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["status"] == "success"
+    assert result["processed_count"] == 2
+    assert result["job_id"] == 456
+    assert "first.txt" in result["combined_output"]
+    assert "second.csv" in result["combined_output"]
+
+def test_upload_rejects_unsupported_extension():
+    app.dependency_overrides[get_db] = _override_db
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("malware.exe", b"synthetic content", "application/octet-stream"))
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "Only PDF, DOCX, CSV and TXT" in response.json()["detail"]
+
+def test_upload_rejects_empty_file():
+    app.dependency_overrides[get_db] = _override_db
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("empty.txt", b"", "text/plain"))
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "Empty files are not accepted." in response.json()["detail"]
+
+def test_upload_rejects_oversized_file(monkeypatch):
+    monkeypatch.setattr(processing_routes.settings, "max_upload_size_mb", 1)
+    app.dependency_overrides[get_db] = _override_db
+
+    large_content = b"A" * (1024 * 1024 + 1)
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("large.txt", large_content, "text/plain"))
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 413
+    assert "exceeds the configured size limit" in response.json()["detail"]
+
+def test_upload_rejects_duplicate_filenames():
+    app.dependency_overrides[get_db] = _override_db
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("statement.txt", b"Merchant: Alpha", "text/plain")),
+            ("files", ("statement.txt", b"Merchant: Beta", "text/plain")),
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "Duplicate filenames are not allowed." in response.json()["detail"]
+
+def test_upload_rejects_path_traversal_filename():
+    app.dependency_overrides[get_db] = _override_db
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("..\\secret.txt", b"synthetic content", "text/plain")),
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "uploaded filename is invalid" in response.json()["detail"]
+
+def test_upload_unsafe_batch_is_not_persisted(monkeypatch):
+    app.dependency_overrides[get_db] = _override_db
+    persist_mock = MagicMock()
+
+    monkeypatch.setattr(
+        processing_routes.DocumentProcessingService,
+        "persist_batch_result",
+        persist_mock,
+    )
+
+    monkeypatch.setattr(
+        processing_routes.DocumentProcessingService,
+        "process_directory",
+        lambda self, *args, **kwargs: {
+            "status": "unsafe",
+            "safe_to_send": False,
+            "failed_count": 1,
+            "failed_files": [{"file": "synthetic.txt", "reason": "synthetic failure"}],
+        },
+    )
+
+    response = client.post(
+        "/api/v1/upload",
+        files=[
+            ("files", ("synthetic.txt", b"synthetic test content", "text/plain")),
+        ],
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "unsafe"
+    assert response.json()["safe_to_send"] is False
+    assert response.json()["combined_output"] is None
+    persist_mock.assert_not_called()

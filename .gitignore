@@ -63,3 +63,6 @@ raw_*
 !README.txt
 !requirements.txt
 !prompts.txt
+# Temporary backups and synthetic test uploads
+*.backup
+test_upload/

@@ -1,0 +1,11 @@
+# Prompt Transcript — Financial Data PII Scrubber
+
+STATUS: INCOMPLETE
+
+The available GitHub Copilot Chat export does not reliably distinguish original user prompts from AI responses and terminal activity.
+
+A complete chronological record of ChatGPT prompts has not been established.
+
+No prompts have been reconstructed or fabricated.
+
+The original AI conversation histories should be used to complete this file with verbatim user prompts in chronological order.

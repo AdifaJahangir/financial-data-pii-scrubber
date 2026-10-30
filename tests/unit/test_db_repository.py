@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -273,6 +273,55 @@ def test_failed_batch_leaves_no_successful_job_or_document_records() -> None:
         raise AssertionError("failed batch should not be trusted for persistence")
     except ValueError:
         pass
+
+    assert session.query(ProcessingJob).count() == 0
+    assert session.query(ScrubbedDocument).count() == 0
+
+def test_repository_rejects_unredacted_account_number() -> None:
+    session = _make_session()
+    repository = ProcessingJobRepository(session)
+
+    batch = _safe_batch()
+    unsafe_text = "Account: 1234567890"
+
+    batch["processed_files"][0]["scrubbed_output"] = unsafe_text
+    batch["combined_output"] = f"=== good.txt ===\n{unsafe_text}"
+
+    with pytest.raises(ValueError):
+        repository.persist_successful_batch("document_scan", batch)
+
+    assert session.query(ProcessingJob).count() == 0
+    assert session.query(ScrubbedDocument).count() == 0
+
+
+def test_repository_rejects_email_in_combined_output() -> None:
+    session = _make_session()
+    repository = ProcessingJobRepository(session)
+
+    batch = _safe_batch()
+
+    # The filename introduces an email into combined output.
+    batch["processed_files"][0]["file_name"] = "jane@example.com.txt"
+    batch["combined_output"] = (
+        "=== jane@example.com.txt ===\nJane Doe"
+    )
+
+    with pytest.raises(ValueError):
+        repository.persist_successful_batch("document_scan", batch)
+
+    assert session.query(ProcessingJob).count() == 0
+    assert session.query(ScrubbedDocument).count() == 0
+
+
+def test_repository_rejects_mismatched_combined_output() -> None:
+    session = _make_session()
+    repository = ProcessingJobRepository(session)
+
+    batch = _safe_batch()
+    batch["combined_output"] = "=== good.txt ===\nDifferent content"
+
+    with pytest.raises(ValueError):
+        repository.persist_successful_batch("document_scan", batch)
 
     assert session.query(ProcessingJob).count() == 0
     assert session.query(ScrubbedDocument).count() == 0
